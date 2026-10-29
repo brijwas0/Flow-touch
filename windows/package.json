@@ -1,0 +1,20 @@
+{
+  "name": "phonetouch-receiver",
+  "version": "1.0.0",
+  "description": "Windows receiver for PhoneTouch: turns an Android phone into a wireless touchpad and keyboard over the local network.",
+  "private": true,
+  "license": "MIT",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "start:mock": "node server.js --backend mock",
+    "health": "node scripts/health.js",
+    "check": "node scripts/check.js",
+    "test": "node scripts/run-tests.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

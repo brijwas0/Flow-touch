@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhoneTouch Companion</title>
+  <style>
+    :root {
+      --bg: #0B0B0D;
+      --card-bg: rgba(28, 28, 30, 0.75);
+      --card-border: rgba(255, 255, 255, 0.09);
+      --surface-2: #2C2C2E;
+      --surface-3: #3A3A3C;
+      --text: #F2F2F7;
+      --text-muted: #8E8E93;
+      --blue: #0A84FF;
+      --blue-hover: #0071E3;
+      --blue-glow: rgba(10, 132, 255, 0.35);
+      --green: #32D74B;
+      --green-glow: rgba(50, 215, 75, 0.3);
+      --red: #FF453A;
+      --red-bg: rgba(255, 69, 58, 0.15);
+      --orange: #FF9F0A;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(10, 132, 255, 0.12), transparent 50%),
+        radial-gradient(circle at 80% 90%, rgba(50, 215, 75, 0.06), transparent 40%);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 32px 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(255, 255, 255, 0.05);
+      position: relative;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--blue), #5856D6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px var(--blue-glow);
+    }
+
+    .logo-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #FFFFFF;
+    }
+
+    .brand-title {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface-2);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: all 0.3s ease;
+    }
+
+    .status-dot.active {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .status-dot.pairing {
+      background: var(--orange);
+      box-shadow: 0 0 8px var(--orange);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Views */
+    .view {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .view.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Welcome View */
+    .hero-art {
+      width: 100px;
+      height: 100px;
+      border-radius: 28px;
+      background: radial-gradient(circle at 30% 30%, rgba(10, 132, 255, 0.25), rgba(88, 86, 214, 0.08));
+      border: 1px solid rgba(10, 132, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .hero-art svg {
+      width: 48px;
+      height: 48px;
+      fill: var(--blue);
+      filter: drop-shadow(0 4px 10px var(--blue-glow));
+    }
+
+    .view-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin-bottom: 8px;
+    }
+
+    .view-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 32px;
+      max-width: 320px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      height: 52px;
+      background: var(--blue);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 18px var(--blue-glow);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary:hover {
+      background: var(--blue-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px var(--blue-glow);
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--card-border);
+      height: 42px;
+      padding: 0 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-3);
+    }
+
+    .btn-danger {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid rgba(255, 69, 58, 0.3);
+      height: 44px;
+      width: 100%;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 69, 58, 0.25);
+    }
+
+    /* QR View */
+    .qr-card {
+      background: #FFFFFF;
+      padding: 16px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-card svg {
+      display: block;
+    }
+
+    .radar-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--orange);
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+
+    .code-box {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .code-details {
+      text-align: left;
+    }
+
+    .code-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .code-digits {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #FFFFFF;
+    }
+
+    .btn-copy {
+      background: transparent;
+      border: none;
+      color: var(--blue);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      background: rgba(10, 132, 255, 0.15);
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      padding: 0 4px;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .actions-row button {
+      flex: 1;
+    }
+
+    /* Connected View */
+    .success-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(50, 215, 75, 0.2), transparent 70%);
+      border: 2px solid var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      box-shadow: 0 0 24px var(--green-glow);
+      animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-badge svg {
+      width: 40px;
+      height: 40px;
+      stroke: var(--green);
+      stroke-width: 3.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: drawCheck 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+    }
+
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .device-card {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .device-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .device-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .device-key {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .device-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .gestures-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .gesture-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+
+    .gesture-title {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .gesture-desc {
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(44, 44, 46, 0.95);
+      border: 1px solid var(--card-border);
+      color: #FFFFFF;
+      padding: 8px 16px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm0 2v8h16V8H4zm7 5h2v2h-2v-2z"/></svg>
+        </div>
+        <div class="brand-title">PhoneTouch</div>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusLabel">Ready</span>
+      </div>
+    </header>
+
+    <!-- Screen 1: Welcome / Pair Device -->
+    <div class="view active" id="viewWelcome">
+      <div class="hero-art">
+        <svg viewBox="0 0 24 24"><path d="M17 1H7C5.9 1 5 1.9 5 3v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14zm-5 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></svg>
+      </div>
+      <h2 class="view-title">Wireless Touchpad</h2>
+      <p class="view-desc">Turn your Android phone into a high-precision, low-latency laptop touchpad and keyboard.</p>
+      
+      <button class="btn-primary" id="btnStartPair">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 10.5C3.67 10.5 3 11.17 3 12s.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-15z M12 4.5c-.83 0-1.5.67-1.5 1.5v12c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V6c0-.83-.67-1.5-1.5-1.5z"/></svg>
+        Pair Device
+      </button>
+    </div>
+
+    <!-- Screen 2: QR Code & Waiting -->
+    <div class="view" id="viewPairing">
+      <div class="radar-bar">
+        <span class="status-dot pairing"></span>
+        <span>Waiting for phone to scan...</span>
+      </div>
+
+      <div class="qr-card" id="qrContainer">
+        <!-- SVG QR code rendered here -->
+      </div>
+
+      <div class="code-box">
+        <div class="code-details">
+          <div class="code-label">Pairing Code</div>
+          <div class="code-digits" id="pairingCodeText">---- ---- ----</div>
+        </div>
+        <button class="btn-copy" id="btnCopyCode" title="Copy code">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+      </div>
+
+      <div class="meta-row">
+        <span>Address: <strong id="ipAddressText" style="color:var(--text)">--</strong></span>
+        <span>Expires in: <strong id="timerText" style="color:var(--orange)">05:00</strong></span>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn-secondary" id="btnNewCode">New Code</button>
+        <button class="btn-secondary" id="btnCancelPair">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Connected Successfully -->
+    <div class="view" id="viewConnected">
+      <div class="success-badge">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <h2 class="view-title">Connected Successfully</h2>
+      <p class="view-desc" id="connectedDeviceDesc">Your phone is now acting as a touchpad.</p>
+
+      <div class="device-card">
+        <div class="device-row">
+          <span class="device-key">Device</span>
+          <span class="device-val" id="connectedDeviceName">Android Device</span>
+        </div>
+        <div class="device-row">
+          <span class="device-key">IP Address</span>
+          <span class="device-val" id="connectedDeviceIp">--</span>
+        </div>
+        <div class="device-row">
+          <span class="device-key">Session Uptime</span>
+          <span class="device-val" id="sessionUptime">00:00</span>
+        </div>
+        <div class="device-row">
+          <span class="device-key">Engine</span>
+          <span class="device-val">Windows SendInput</span>
+        </div>
+      </div>
+
+      <div class="gestures-grid">
+        <div class="gesture-item">
+          <div class="gesture-title">3-Finger Swipe</div>
+          <div class="gesture-desc">Down = Desktop, Left/Right = Apps</div>
+        </div>
+        <div class="gesture-item">
+          <div class="gesture-title">3 & 4-Finger Tap</div>
+          <div class="gesture-desc">Start Menu & Notifications</div>
+        </div>
+        <div class="gesture-item">
+          <div class="gesture-title">2-Finger Pinch</div>
+          <div class="gesture-desc">Zoom in and out</div>
+        </div>
+        <div class="gesture-item">
+          <div class="gesture-title">Hold & Drag</div>
+          <div class="gesture-desc">Reliable file/window drag</div>
+        </div>
+      </div>
+
+      <button class="btn-danger" id="btnDisconnect">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+        Disconnect Phone
+      </button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard</div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+
+    let state = 'waiting';
+    let currentCode = '';
+    let expiresAt = 0;
+    let timerInterval = null;
+    let uptimeInterval = null;
+    let sessionStartedAt = 0;
+
+    function showView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const target = el(viewId);
+      if (target) target.classList.add('active');
+    }
+
+    function showToast(msg) {
+      const t = el('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function updateTimer() {
+      if (!expiresAt) return;
+      const left = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const mins = Math.floor(left / 60).toString().padStart(2, '0');
+      const secs = (left % 60).toString().padStart(2, '0');
+      el('timerText').textContent = `${mins}:${secs}`;
+      if (left <= 0) {
+        clearInterval(timerInterval);
+        el('timerText').textContent = 'Expired';
+        fetchPairInfo();
+      }
+    }
+
+    function updateUptime() {
+      if (!sessionStartedAt) return;
+      const sec = Math.floor((Date.now() - sessionStartedAt) / 1000);
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      el('sessionUptime').textContent = `${m}:${s}`;
+    }
+
+    async function fetchPairInfo() {
+      try {
+        const res = await fetch('/api/pair', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          currentCode = data.code;
+          expiresAt = data.expiresAt;
+          el('qrContainer').innerHTML = data.qrSvg;
+          el('pairingCodeText').textContent = data.formatted;
+          el('ipAddressText').textContent = data.host + ':' + data.port;
+          
+          clearInterval(timerInterval);
+          updateTimer();
+          timerInterval = setInterval(updateTimer, 1000);
+
+          el('statusDot').className = 'status-dot pairing';
+          el('statusLabel').textContent = 'Pairing';
+          showView('viewPairing');
+        }
+      } catch (e) {
+        console.error('Failed to get pair info:', e);
+      }
+    }
+
+    async function checkStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const s = await res.json();
+        applyStatus(s);
+      } catch (e) {
+        console.error('Status check error:', e);
+      }
+    }
+
+    function applyStatus(s) {
+      if (s.state === 'controlled') {
+        el('statusDot').className = 'status-dot active';
+        el('statusLabel').textContent = 'Connected';
+        const name = (s.session && s.session.name) || 'Phone';
+        const ip = (s.session && s.session.ip) || '--';
+        el('connectedDeviceName').textContent = name;
+        el('connectedDeviceIp').textContent = ip;
+        el('connectedDeviceDesc').textContent = `${name} is actively connected.`;
+        sessionStartedAt = (s.session && s.session.startedAt) || Date.now();
+        
+        clearInterval(uptimeInterval);
+        updateUptime();
+        uptimeInterval = setInterval(updateUptime, 1000);
+        showView('viewConnected');
+      } else {
+        clearInterval(uptimeInterval);
+        if (el('viewConnected').classList.contains('active')) {
+          el('statusDot').className = 'status-dot';
+          el('statusLabel').textContent = 'Ready';
+          showView('viewWelcome');
+        }
+      }
+    }
+
+    // Connect SSE events for live updates
+    function setupEvents() {
+      const es = new EventSource('/api/events');
+      es.onmessage = (e) => {
+        try {
+          const ev = JSON.parse(e.data);
+          if (ev.type === 'session-start') {
+            checkStatus();
+          } else if (ev.type === 'session-end') {
+            checkStatus();
+            showToast('Phone disconnected');
+          } else if (ev.type === 'code') {
+            if (el('viewPairing').classList.contains('active')) {
+              fetchPairInfo();
+            }
+          }
+        } catch (err) {
+          console.error('SSE parse error:', err);
+        }
+      };
+      es.onerror = () => {
+        setTimeout(setupEvents, 3000);
+      };
+    }
+
+    // Buttons
+    el('btnStartPair').addEventListener('click', () => {
+      fetchPairInfo();
+    });
+
+    el('btnCancelPair').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      el('statusDot').className = 'status-dot';
+      el('statusLabel').textContent = 'Ready';
+      showView('viewWelcome');
+    });
+
+    el('btnNewCode').addEventListener('click', () => {
+      fetchPairInfo();
+    });
+
+    el('btnCopyCode').addEventListener('click', () => {
+      if (currentCode) {
+        navigator.clipboard.writeText(currentCode).then(() => showToast('Pairing code copied!'));
+      }
+    });
+
+    el('btnDisconnect').addEventListener('click', async () => {
+      try {
+        await fetch('/api/revoke', { method: 'POST' });
+        showToast('Disconnected');
+        showView('viewWelcome');
+        el('statusDot').className = 'status-dot';
+        el('statusLabel').textContent = 'Ready';
+      } catch (e) {
+        console.error('Failed to revoke session:', e);
+      }
+    });
+
+    // Init
+    checkStatus();
+    setupEvents();
+  </script>
+</body>
+</html>

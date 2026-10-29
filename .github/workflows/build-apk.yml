@@ -1,0 +1,49 @@
+name: Build PhoneTouch APK
+
+# Builds the debug APK in the cloud (free GitHub-hosted runner) so Android Studio is not needed.
+# Run it from the "Actions" tab ("Run workflow") or by pushing to the main branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  receiver-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Static checks
+        working-directory: windows
+        run: npm run check
+      - name: Receiver tests
+        working-directory: windows
+        run: npm test
+
+  android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Make the wrapper executable
+        working-directory: android
+        run: chmod +x gradlew
+      - name: Unit tests (gesture engine, pairing crypto, messages)
+        working-directory: android
+        run: ./gradlew --no-daemon testDebugUnitTest
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+      - name: Show the APK
+        run: ls -l android/app/build/outputs/apk/debug/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PhoneTouch-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

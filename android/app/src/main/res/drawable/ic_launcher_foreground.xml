@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- touchpad outline -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M34,38 L74,38 A6,6 0 0 1 80,44 L80,64 A6,6 0 0 1 74,70 L34,70 A6,6 0 0 1 28,64 L28,44 A6,6 0 0 1 34,38 Z"
+        android:strokeColor="#F2F2F7"
+        android:strokeWidth="3" />
+    <!-- fingertip -->
+    <path
+        android:fillColor="#F2F2F7"
+        android:pathData="M54,54 m-5,0 a5,5 0 1 1 10,0 a5,5 0 1 1 -10,0" />
+</vector>
